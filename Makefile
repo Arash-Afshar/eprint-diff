@@ -20,16 +20,17 @@ package: install
 		icon48.png \
 		icon128.png \
 		-x "*.git*" "*.zip" "*.md" "Makefile" "*.pdf" "test-*" "node_modules" "package*.json"
-	@echo "? Created eprintdiff-extension.zip"
-	@echo "? Ready for Chrome Web Store upload"
+	@echo "Created eprintdiff-extension.zip"
+	@echo "Ready for Chrome Web Store upload"
 
 # Clean up generated files
 clean:
 	@echo "Cleaning up..."
-	@rm -f eprintdiff-extension.zip
-	@rm -f pdf.min.js pdf.worker.min.js pdf-lib.min.js pdf.sandbox.min.js
-	@rm -rf pdfjs-dist/ pdf-lib/
-	@echo "? Cleaned up"
+	@rm -f *.zip
+	@rm -f *.min.js
+	@rm -f *.min.mjs
+	@rm -rf node_modules
+	@echo "Cleaned up"
 
 # Show file sizes (useful for checking if under 10MB limit)
 check-size:
