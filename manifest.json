@@ -18,14 +18,14 @@
   "content_scripts": [
     {
       "matches": ["https://eprint.iacr.org/archive/versions/*"],
-      "js": ["pdf.min.js", "pdf-lib.min.js", "content.js"],
+      "js": ["pdf-lib.min.js", "content.js"],
       "css": ["styles.css"],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["pdf.worker.min.js"],
+      "resources": ["pdf.min.mjs", "pdf.worker.min.mjs"],
       "matches": ["https://eprint.iacr.org/*"]
     }
   ]

@@ -3,41 +3,34 @@
 (function() {
   'use strict';
 
-  // Set pdf.js worker path early (before any pdf.js operations)
-  if (typeof chrome !== 'undefined' && chrome.runtime) {
-    // Wait for pdf.js to be available, then set worker
-    const setWorkerPath = () => {
-      if (window.pdfjsLib) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('pdf.worker.min.js');
-      } else {
-        setTimeout(setWorkerPath, 50);
-      }
-    };
-    setWorkerPath();
-  }
-
-  // Load pdf.js library - it should already be loaded via manifest, but check
+  // Load pdf.js library using dynamic import for ES module
   async function loadPDFJS() {
+    // Check if already loaded
     if (window.pdfjsLib) {
-      // Set worker source to local file
-      pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('pdf.worker.min.js');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('pdf.worker.min.mjs');
       return window.pdfjsLib;
     }
 
-    // If not loaded, wait a bit (shouldn't happen if loaded via manifest)
-    return new Promise((resolve, reject) => {
-      let attempts = 0;
-      const checkInterval = setInterval(() => {
-        if (window.pdfjsLib) {
-          clearInterval(checkInterval);
-          pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('pdf.worker.min.js');
-          resolve(window.pdfjsLib);
-        } else if (attempts++ > 20) {
-          clearInterval(checkInterval);
-          reject(new Error('pdf.js library failed to load'));
-        }
-      }, 100);
-    });
+    try {
+      // Load PDF.js as ES module using dynamic import
+      // PDF.js v5 exports all functions/classes as named exports
+      const pdfjsModule = await import(chrome.runtime.getURL('pdf.min.mjs'));
+      
+      // PDF.js v5 doesn't have a default export, it exports everything as named exports
+      // We need to use the module itself or access getDocument directly
+      const pdfjsLib = pdfjsModule;
+      
+      // Set worker source
+      pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('pdf.worker.min.mjs');
+      
+      // Store globally for reuse
+      window.pdfjsLib = pdfjsLib;
+      
+      return pdfjsLib;
+    } catch (error) {
+      console.error('EPRINT Diff: Error loading PDF.js:', error);
+      throw new Error('pdf.js library failed to load: ' + error.message);
+    }
   }
 
   // Load pdf-lib library - it should already be loaded via manifest

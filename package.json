@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Compare two PDF versions from eprint.iacr.org archive",
   "scripts": {
-    "postinstall": "copyfiles -u 3 \"node_modules/pdfjs-dist/build/pdf.min.js\" \"node_modules/pdfjs-dist/build/pdf.worker.min.js\" \"node_modules/pdf-lib/dist/pdf-lib.min.js\" ."
+    "postinstall": "copyfiles -u 3 \"node_modules/pdfjs-dist/build/pdf.min.mjs\" \"node_modules/pdfjs-dist/build/pdf.worker.min.mjs\" \"node_modules/pdf-lib/dist/pdf-lib.min.js\" ."
   },
   "dependencies": {
     "pdf-lib": "^1.17.1",
