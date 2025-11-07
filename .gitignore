@@ -1,0 +1,14 @@
+node_modules/
+package-lock.json
+eprintdiff-extension.zip
+*.pdf
+test-*
+
+# Generated PDF library files (copied from node_modules during build)
+# These are automatically created by 'npm install' via the postinstall script
+pdf.min.js
+pdf.worker.min.js
+pdf-lib.min.js
+pdf.sandbox.min.js
+pdfjs-dist/
+pdf-lib/

@@ -1,0 +1,15 @@
+{
+  "name": "eprintdiff-extension",
+  "version": "0.0.1",
+  "description": "Compare two PDF versions from eprint.iacr.org archive",
+  "scripts": {
+    "postinstall": "copyfiles -u 3 \"node_modules/pdfjs-dist/build/pdf.min.js\" \"node_modules/pdfjs-dist/build/pdf.worker.min.js\" \"node_modules/pdf-lib/dist/pdf-lib.min.js\" ."
+  },
+  "dependencies": {
+    "pdfjs-dist": "^3.11.174",
+    "pdf-lib": "^1.17.1"
+  },
+  "devDependencies": {
+    "copyfiles": "^2.4.1"
+  }
+}

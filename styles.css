@@ -1,0 +1,123 @@
+.eprint-diff-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  border: 2px solid #4a90e2;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  max-width: 400px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.eprint-diff-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.eprint-diff-section {
+  margin-bottom: 15px;
+}
+
+.eprint-diff-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.eprint-diff-select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+.eprint-diff-select:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+.eprint-diff-button {
+  width: 100%;
+  padding: 10px;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s;
+}
+
+.eprint-diff-button:hover {
+  background: #357abd;
+}
+
+.eprint-diff-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.eprint-diff-status {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.eprint-diff-status.loading {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.eprint-diff-status.error {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.eprint-diff-status.success {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.eprint-diff-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+}
+
+.eprint-diff-close:hover {
+  color: #333;
+}
+
+.eprint-link-highlight {
+  background-color: #fff3cd !important;
+  border: 2px solid #ffc107 !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+}
+
+.eprint-link-selected {
+  background-color: #d4edda !important;
+  border: 2px solid #28a745 !important;
+}

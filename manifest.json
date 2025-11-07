@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "ePrint Archive PDF Diff",
+  "version": "0.0.1",
+  "description": "Compare two PDF versions from eprint.iacr.org archive",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "permissions": [
+    "activeTab",
+    "downloads"
+  ],
+  "host_permissions": [
+    "https://eprint.iacr.org/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://eprint.iacr.org/archive/versions/*"],
+      "js": ["pdf.min.js", "pdf-lib.min.js", "content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["pdf.worker.min.js"],
+      "matches": ["https://eprint.iacr.org/*"]
+    }
+  ]
+}
