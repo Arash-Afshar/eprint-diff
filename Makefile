@@ -1,13 +1,13 @@
-.PHONY: package clean check-size list-files deps
+.PHONY: package clean check-size list-files install
 
 # Install npm dependencies (postinstall script automatically copies required files)
-deps:
+install:
 	@echo "Installing npm dependencies..."
 	@npm install
 	@echo "? Dependencies ready"
 
 # Package the extension for Chrome Web Store submission
-package: deps
+package: install
 	@echo "Packaging extension for Chrome Web Store..."
 	@zip -r eprintdiff-extension.zip \
 		manifest.json \
@@ -37,7 +37,7 @@ check-size:
 	@du -h eprintdiff-extension.zip 2>/dev/null || echo "Package not created yet. Run 'make package' first."
 
 # List files that will be included
-list-files: deps
+list-files: install
 	@echo "Files to be included in package:"
 	@ls -lh manifest.json content.js styles.css pdf.min.js pdf.worker.min.js pdf-lib.min.js icon16.png icon48.png icon128.png 2>/dev/null || echo "Some files missing!"
 	@echo ""
