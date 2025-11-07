@@ -15,6 +15,9 @@
   "host_permissions": [
     "https://eprint.iacr.org/*"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "content_scripts": [
     {
       "matches": ["https://eprint.iacr.org/archive/versions/*"],

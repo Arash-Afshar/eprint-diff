@@ -38,6 +38,16 @@
     });
   }
 
+  function isValidEprintUrl(url) {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.origin === 'https://eprint.iacr.org' && 
+             urlObj.pathname.startsWith('/archive/');
+    } catch {
+      return false;
+    }
+  }
+
   function resolveUrl(href, baseUrl) {
     if (href.startsWith('/')) {
       return window.location.origin + href;
@@ -52,24 +62,56 @@
     const container = document.createElement('div');
     container.id = 'eprint-diff-container';
     container.className = 'eprint-diff-container';
-    container.innerHTML = `
-      <button class="eprint-diff-close" onclick="this.parentElement.remove()">×</button>
-      <div class="eprint-diff-title">Compare PDF Versions</div>
-      <div class="eprint-diff-section">
-        <label class="eprint-diff-label" for="eprint-select-1">Select First Version:</label>
-        <select id="eprint-select-1" class="eprint-diff-select">
-          <option value="">-- Select --</option>
-        </select>
-      </div>
-      <div class="eprint-diff-section">
-        <label class="eprint-diff-label" for="eprint-select-2">Select Second Version:</label>
-        <select id="eprint-select-2" class="eprint-diff-select">
-          <option value="">-- Select --</option>
-        </select>
-      </div>
-      <button id="eprint-diff-button" class="eprint-diff-button" disabled>Compare PDFs</button>
-      <div id="eprint-diff-status"></div>
-    `;
+    const closeButton = document.createElement('button');
+    closeButton.className = 'eprint-diff-close';
+    closeButton.textContent = '×';
+    closeButton.addEventListener('click', () => container.remove());
+    const title = document.createElement('div');
+    title.className = 'eprint-diff-title';
+    title.textContent = 'Compare PDF Versions';
+    const section1 = document.createElement('div');
+    section1.className = 'eprint-diff-section';
+    const label1 = document.createElement('label');
+    label1.className = 'eprint-diff-label';
+    label1.setAttribute('for', 'eprint-select-1');
+    label1.textContent = 'Select First Version:';
+    const select1 = document.createElement('select');
+    select1.id = 'eprint-select-1';
+    select1.className = 'eprint-diff-select';
+    const option1Default = document.createElement('option');
+    option1Default.value = '';
+    option1Default.textContent = '-- Select --';
+    select1.appendChild(option1Default);
+    section1.appendChild(label1);
+    section1.appendChild(select1);
+    const section2 = document.createElement('div');
+    section2.className = 'eprint-diff-section';
+    const label2 = document.createElement('label');
+    label2.className = 'eprint-diff-label';
+    label2.setAttribute('for', 'eprint-select-2');
+    label2.textContent = 'Select Second Version:';
+    const select2 = document.createElement('select');
+    select2.id = 'eprint-select-2';
+    select2.className = 'eprint-diff-select';
+    const option2Default = document.createElement('option');
+    option2Default.value = '';
+    option2Default.textContent = '-- Select --';
+    select2.appendChild(option2Default);
+    section2.appendChild(label2);
+    section2.appendChild(select2);
+    const button = document.createElement('button');
+    button.id = 'eprint-diff-button';
+    button.className = 'eprint-diff-button';
+    button.disabled = true;
+    button.textContent = 'Compare PDFs';
+    const statusDiv = document.createElement('div');
+    statusDiv.id = 'eprint-diff-status';
+    container.appendChild(closeButton);
+    container.appendChild(title);
+    container.appendChild(section1);
+    container.appendChild(section2);
+    container.appendChild(button);
+    container.appendChild(statusDiv);
     document.body.appendChild(container);
     return container;
   }
@@ -99,6 +141,10 @@
         });
         
         if (!links.find(l => l.url === archiveUrl)) {
+          if (!isValidEprintUrl(archiveUrl)) {
+            console.warn('EPRINT Diff: Invalid archive URL detected:', archiveUrl);
+            return;
+          }
           const linkText = link.textContent.trim();
           const displayText = linkText || `${year}/${number}/${revision}`;
           
@@ -153,6 +199,9 @@
   }
 
   async function getPDFUrl(archiveUrl) {
+    if (!isValidEprintUrl(archiveUrl)) {
+      throw new Error('Invalid archive URL');
+    }
     try {
       const response = await fetch(archiveUrl);
       if (!response.ok) {
@@ -170,6 +219,9 @@
         if ((text.includes('PDF') || (href && href.endsWith('.pdf'))) && href) {
           const pdfUrl = resolveUrl(href, archiveUrl);
           if (pdfUrl.endsWith('.pdf') || pdfUrl.includes('.pdf')) {
+            if (!isValidEprintUrl(pdfUrl)) {
+              continue;
+            }
             console.log('EPRINT Diff: Found PDF URL:', pdfUrl, 'from archive:', archiveUrl);
             return pdfUrl;
           }
@@ -192,6 +244,9 @@
   }
 
   async function fetchPDF(url) {
+    if (!isValidEprintUrl(url)) {
+      throw new Error('Invalid PDF URL');
+    }
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch PDF: ${response.statusText}`);
@@ -588,7 +643,8 @@
     } catch (error) {
       console.error('Error comparing PDFs:', error);
       statusDiv.className = 'eprint-diff-status error';
-      statusDiv.textContent = `Error: ${error.message}`;
+      const errorMessage = error.message || 'An unknown error occurred';
+      statusDiv.textContent = `Error: ${errorMessage.length > 100 ? errorMessage.substring(0, 100) + '...' : errorMessage}`;
     }
   }
 
@@ -663,6 +719,10 @@
       const url1 = select1.value;
       const url2 = select2.value;
       if (url1 && url2 && url1 !== url2) {
+        if (!isValidEprintUrl(url1) || !isValidEprintUrl(url2)) {
+          showErrorUI('Invalid URL selected. Please select valid archive versions.');
+          return;
+        }
         comparePDFs(url2, url1);
       }
     });
