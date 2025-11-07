@@ -122,7 +122,6 @@
     // Timestamp format: YYYYMMDD:HHMMSS
     const urlPattern = /\/archive\/(?:versions\/)?(\d+)\/(\d+)\/([\d:]+)/;
     const allLinks = document.querySelectorAll('a[href]');
-    console.log('EPRINT Diff: Scanning', allLinks.length, 'links on page');
     
     allLinks.forEach(link => {
       const href = link.href || link.getAttribute('href');
@@ -134,15 +133,8 @@
         const [, year, number, revision] = match;
         const archiveUrl = `https://eprint.iacr.org/archive/${year}/${number}/${revision}`;
         
-        console.log('EPRINT Diff: Found archive link:', {
-          originalHref: href,
-          fullUrl: fullUrl,
-          archiveUrl: archiveUrl
-        });
-        
         if (!links.find(l => l.url === archiveUrl)) {
           if (!isValidEprintUrl(archiveUrl)) {
-            console.warn('EPRINT Diff: Invalid archive URL detected:', archiveUrl);
             return;
           }
           const linkText = link.textContent.trim();
@@ -166,7 +158,6 @@
       return parseInt(b.revision) - parseInt(a.revision);
     });
     
-    console.log('EPRINT Diff: Extracted links:', links.map(l => l.displayText));
     return links;
   }
 
@@ -222,7 +213,6 @@
             if (!isValidEprintUrl(pdfUrl)) {
               continue;
             }
-            console.log('EPRINT Diff: Found PDF URL:', pdfUrl, 'from archive:', archiveUrl);
             return pdfUrl;
           }
         }
@@ -232,7 +222,6 @@
       if (pdfLinks.length > 0) {
         const href = pdfLinks[0].href || pdfLinks[0].getAttribute('href');
         const pdfUrl = resolveUrl(href, archiveUrl);
-        console.log('EPRINT Diff: Found PDF URL via .pdf selector:', pdfUrl);
         return pdfUrl;
       }
       
@@ -351,17 +340,6 @@
     
     const matchRatio1 = matched1.size / Math.max(words1.length, 1);
     const matchRatio2 = matched2.size / Math.max(words2.length, 1);
-    
-    console.log(`EPRINT Diff: findTextDifferences - words1: ${words1.length}, words2: ${words2.length}`);
-    console.log(`EPRINT Diff: findTextDifferences - matched1: ${matched1.size}, matched2: ${matched2.size}`);
-    console.log(`EPRINT Diff: findTextDifferences - unmatched1: ${unmatched1.length}, unmatched2: ${unmatched2.length}`);
-    console.log(`EPRINT Diff: findTextDifferences - matchRatio1: ${matchRatio1.toFixed(3)}, matchRatio2: ${matchRatio2.toFixed(3)}`);
-    if (unmatched1.length > 0) {
-      console.log(`EPRINT Diff: findTextDifferences - unmatched1 texts:`, unmatched1.slice(0, 10).map(w => w.text));
-    }
-    if (unmatched2.length > 0) {
-      console.log(`EPRINT Diff: findTextDifferences - unmatched2 texts:`, unmatched2.slice(0, 10).map(w => w.text));
-    }
     
     result.hasChanges = true;
     
@@ -521,36 +499,22 @@
             const text1Normalized = text1.items.map(item => item.str).join(' ').replace(/\s+/g, ' ').trim();
             const text2Normalized = text2.items.map(item => item.str).join(' ').replace(/\s+/g, ' ').trim();
             
-            console.log(`EPRINT Diff: Comparing page ${pageNum}`);
-            console.log(`EPRINT Diff: Text1 length: ${text1Normalized.length}, Text2 length: ${text2Normalized.length}`);
-            console.log(`EPRINT Diff: Texts match: ${text1Normalized === text2Normalized}`);
-            
             if (text1Normalized === text2Normalized) {
-              console.log(`EPRINT Diff: Page ${pageNum} is identical, skipping diff`);
               const [page1Copy] = await diffDoc.copyPages(pdf1Doc, [pageNum - 1]);
               diffDoc.addPage(page1Copy);
               continue;
             }
             
-            console.log(`EPRINT Diff: Page ${pageNum} has differences, computing detailed diff`);
             const viewport1 = page1.getViewport({ scale: 1.0 });
             const viewport2 = page2.getViewport({ scale: 1.0 });
             const page1Info = await pdf1Doc.getPage(pageNum - 1);
             const { width, height } = page1Info.getSize();
             const differences = findTextDifferences(text1.items, text2.items, viewport1, viewport2, height, height);
             
-            console.log(`EPRINT Diff: Page ${pageNum} differences:`, {
-              deleted: differences.deleted.length,
-              added: differences.added.length,
-              modified: differences.modified.length,
-              hasChanges: differences.hasChanges
-            });
-            
             if (!differences.hasChanges || 
                 (differences.deleted.length === 0 && 
                  differences.added.length === 0 && 
                  differences.modified.length === 0)) {
-              console.log(`EPRINT Diff: Page ${pageNum} marked as identical (no differences found)`);
               const [page1Copy] = await diffDoc.copyPages(pdf1Doc, [pageNum - 1]);
               diffDoc.addPage(page1Copy);
               continue;
@@ -606,17 +570,12 @@
       
       statusDiv.textContent = 'Generating diff PDF...';
       const pageCount = diffDoc.getPageCount();
-      console.log(`EPRINT Diff: Diff document has ${pageCount} pages`);
       
       if (pageCount === 0) {
         throw new Error('No pages were added to the diff document. This should not happen.');
       }
       
-      console.log('EPRINT Diff: Saving PDF document...');
       const pdfBytes = await diffDoc.save();
-      console.log(`EPRINT Diff: PDF saved, size: ${pdfBytes.length} bytes`);
-      
-      console.log('EPRINT Diff: Creating download...');
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -626,7 +585,6 @@
       
       try {
         a.click();
-        console.log('EPRINT Diff: Download triggered');
       } catch (downloadError) {
         console.error('EPRINT Diff: Error triggering download:', downloadError);
         window.open(url, '_blank');
@@ -650,13 +608,10 @@
 
   function init() {
     if (!window.location.href.startsWith('https://eprint.iacr.org/archive/versions/')) {
-      console.log('EPRINT Diff: Not on archive versions page');
       return;
     }
 
-    console.log('EPRINT Diff: Extension initialized, looking for archive links...');
     let links = extractArchiveLinks();
-    console.log(`EPRINT Diff: Found ${links.length} archive links on initial scan`);
 
     if (links.length >= 2) {
       createUI(links);
@@ -668,14 +623,12 @@
     const checkInterval = setInterval(() => {
       attempts++;
       links = extractArchiveLinks();
-      console.log(`EPRINT Diff: Attempt ${attempts}: Found ${links.length} archive links`);
       
       if (links.length >= 2) {
         clearInterval(checkInterval);
         createUI(links);
       } else if (attempts >= maxAttempts) {
         clearInterval(checkInterval);
-        console.log('EPRINT Diff: Gave up after', maxAttempts, 'attempts');
         showErrorUI('Could not find archive links on this page. Make sure you are on a page with version links.');
       }
     }, 500);
@@ -700,11 +653,9 @@
 
   function createUI(links) {
     if (document.getElementById('eprint-diff-container')) {
-      console.log('EPRINT Diff: UI already exists');
       return;
     }
 
-    console.log('EPRINT Diff: Creating UI with', links.length, 'links');
     const container = createDiffUI();
     populateSelects(links);
 
