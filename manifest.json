@@ -8,10 +8,7 @@
     "48": "icon48.png",
     "128": "icon128.png"
   },
-  "permissions": [
-    "activeTab",
-    "downloads"
-  ],
+  "permissions": [],
   "host_permissions": [
     "https://eprint.iacr.org/*"
   ],
