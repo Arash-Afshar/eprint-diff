@@ -10,16 +10,21 @@ install:
 package: install
 	@echo "Packaging extension for Chrome Web Store..."
 	@zip -r eprintdiff-extension.zip \
-		manifest.json \
 		content.js \
-		styles.css \
-		pdf.min.js \
-		pdf.worker.min.js \
-		pdf-lib.min.js \
 		icon16.png \
 		icon48.png \
 		icon128.png \
-		-x "*.git*" "*.zip" "*.md" "Makefile" "*.pdf" "test-*" "node_modules" "package*.json"
+		LICENSE \
+		manifest.json \
+		package.json \
+		package-lock.json \
+		pdf.min.mjs \
+		pdf.worker.min.mjs \
+		pdf-lib.min.js \
+		privacy.md \
+		README.md \
+		styles.css \
+		-x "*.git*" "*.zip" "Makefile" "*.pdf" "test-*" "node_modules"
 	@echo "Created eprintdiff-extension.zip"
 	@echo "Ready for Chrome Web Store upload"
 
