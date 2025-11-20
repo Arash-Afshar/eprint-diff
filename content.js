@@ -520,36 +520,95 @@
               continue;
             }
             
-            const [page1Copy] = await diffDoc.copyPages(pdf1Doc, [pageNum - 1]);
-            const [page2Copy] = await diffDoc.copyPages(pdf2Doc, [pageNum - 1]);
-            const newPage1 = diffDoc.addPage(page1Copy);
-            const newPage2 = diffDoc.addPage(page2Copy);
+            // Create side-by-side comparison page
+            const [embeddedPage1] = await diffDoc.embedPdf(pdf1BufferForLib, [pageNum - 1]);
+            const [embeddedPage2] = await diffDoc.embedPdf(pdf2BufferForLib, [pageNum - 1]);
             
-            differences.deleted.forEach(region => {
-              drawHighlight(newPage1, region, PDFLib.rgb(1, 0.7, 0.7));
+            const page1Size = embeddedPage1.size();
+            const page2Size = embeddedPage2.size();
+            
+            // Use the larger height and combined width
+            const maxHeight = Math.max(page1Size.height, page2Size.height);
+            const totalWidth = page1Size.width + page2Size.width + 20; // 20pt gap between pages
+            
+            // Create a new page with enough space for both
+            const sideBySidePage = diffDoc.addPage([totalWidth, maxHeight]);
+            
+            // Draw new version on the left
+            sideBySidePage.drawPage(embeddedPage2, {
+              x: 0,
+              y: maxHeight - page2Size.height,
+              width: page2Size.width,
+              height: page2Size.height,
             });
             
+            // Draw old version on the right
+            sideBySidePage.drawPage(embeddedPage1, {
+              x: page2Size.width + 20,
+              y: maxHeight - page1Size.height,
+              width: page1Size.width,
+              height: page1Size.height,
+            });
+            
+            // Draw highlights on the new version (left side)
             differences.added.forEach(region => {
-              drawHighlight(newPage2, region, PDFLib.rgb(0.7, 1, 0.7));
+              drawHighlight(sideBySidePage, {
+                x: region.x,
+                y: region.y,
+                width: region.width,
+                height: region.height
+              }, PDFLib.rgb(0.7, 1, 0.7));
             });
             
             differences.modified.forEach(region => {
-              drawHighlight(newPage1, { x: region.x1, y: region.y1, width: region.width1, height: region.height1 }, PDFLib.rgb(1, 1, 0.5));
-              drawHighlight(newPage2, { x: region.x2, y: region.y2, width: region.width2, height: region.height2 }, PDFLib.rgb(1, 1, 0.5));
+              drawHighlight(sideBySidePage, {
+                x: region.x2,
+                y: region.y2,
+                width: region.width2,
+                height: region.height2
+              }, PDFLib.rgb(1, 1, 0.5));
             });
             
-            newPage1.drawText('Old Version (deletions in red, changes in yellow)', {
+            // Draw highlights on the old version (right side)
+            differences.deleted.forEach(region => {
+              drawHighlight(sideBySidePage, {
+                x: region.x + page2Size.width + 20,
+                y: region.y,
+                width: region.width,
+                height: region.height
+              }, PDFLib.rgb(1, 0.7, 0.7));
+            });
+            
+            differences.modified.forEach(region => {
+              drawHighlight(sideBySidePage, {
+                x: region.x1 + page2Size.width + 20,
+                y: region.y1,
+                width: region.width1,
+                height: region.height1
+              }, PDFLib.rgb(1, 1, 0.5));
+            });
+            
+            // Add labels
+            sideBySidePage.drawText('New Version (additions in green, changes in yellow)', {
               x: 10,
-              y: height - 20,
+              y: maxHeight - 10,
+              size: 10,
+              color: PDFLib.rgb(0, 0.5, 0),
+            });
+            
+            sideBySidePage.drawText('Old Version (deletions in red, changes in yellow)', {
+              x: page2Size.width + 30,
+              y: maxHeight - 10,
               size: 10,
               color: PDFLib.rgb(0.5, 0, 0),
             });
             
-            newPage2.drawText('New Version (additions in green, changes in yellow)', {
-              x: 10,
-              y: height - 20,
-              size: 10,
-              color: PDFLib.rgb(0, 0.5, 0),
+            // Draw a dividing line between the two versions
+            sideBySidePage.drawLine({
+              start: { x: page2Size.width + 10, y: 0 },
+              end: { x: page2Size.width + 10, y: maxHeight },
+              thickness: 1,
+              color: PDFLib.rgb(0.7, 0.7, 0.7),
             });
           }
         } catch (pageError) {
